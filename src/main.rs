@@ -1,4 +1,5 @@
 use futures::future;
+use futures::future::FutureExt;
 use log::trace;
 use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::convert::Infallible;
@@ -47,6 +48,23 @@ fn returns_dyn_future_i32() -> Pin<Box<dyn Future<Output = i32>>> {
 
 fn returns_future_result() -> impl Future<Output = Result<i32, impl Error>> {
     future::ok::<_, Infallible>(42) // the _ is inferred from the parameter type
+}
+
+fn returns_future_chain() -> impl Future<Output = ()> {
+    future::lazy(|_| trace!("in returns_future_chain()"))
+        .then(|_| {
+            trace!("in first then");
+            future::ready("Hello from rt.block_on()")
+        })
+        .inspect(|result| trace!("future::ready() -> {}", result))
+        .then(|_| returns_impl_future_i32())
+        .inspect(|result| trace!("returns_impl_future_i32() -> {}", result))
+        .then(|_| returns_dyn_future_i32())
+        .inspect(|result| trace!("returns_dyn_future_i32() -> {}", result))
+        .then(|_| returns_future_result())
+        .map(|result| result.unwrap())
+        .inspect(|result| trace!("returns_future_result().unwrap() -> {}", result))
+        .then(|_| future::ready(()))
 }
 
 fn main() {
@@ -107,4 +125,5 @@ fn main() {
         let result = rt.block_on(returns_future_result());
         trace!("{}", result.unwrap());
     }
+    rt.block_on(returns_future_chain());
 }
