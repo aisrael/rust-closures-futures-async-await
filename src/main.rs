@@ -64,16 +64,15 @@ fn main() {
     }
 
     // Tokio runtime
-    let mut rt = tokio::runtime::Builder::new()
-        .threaded_scheduler()
-        .core_threads(4)
-        .on_thread_start(|| trace!("on_thread_start()"))
-        .build()
-        .unwrap();
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
     rt.enter(|| {
         trace!("in rt.enter()");
         tokio::spawn(future::lazy(|_| trace!("in tokio::spawn()")));
     });
     rt.spawn(future::lazy(|_| trace!("in rt.spawn()")));
     rt.block_on(future::lazy(|_| trace!("in rt.block_on()")));
+    {
+        let result = rt.block_on(future::ready("Hello from rt.block_on()"));
+        trace!("{}", result);
+    }
 }
