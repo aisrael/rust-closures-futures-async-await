@@ -55,4 +55,10 @@ fn main() {
         let result = closure("world!");
         println!("{}", result);
     }
+
+    // Tokio runtime
+    let rt = tokio::runtime::Runtime::new().unwrap();
+    rt.enter(|| {
+        println!("in rt.enter()");
+    });
 }
