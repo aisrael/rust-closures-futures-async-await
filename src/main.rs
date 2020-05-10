@@ -59,10 +59,11 @@ fn main() {
     }
 
     // Tokio runtime
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let mut rt = tokio::runtime::Runtime::new().unwrap();
     rt.enter(|| {
         println!("in rt.enter()");
         tokio::spawn(future::lazy(|_| println!("in tokio::spawn()")));
     });
     rt.spawn(future::lazy(|_| println!("in rt.spawn()")));
+    rt.block_on(future::lazy(|_| println!("in rt.block_on()")));
 }
