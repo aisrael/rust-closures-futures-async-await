@@ -1,11 +1,13 @@
 use futures::future;
+use log::trace;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 
 fn receives_closure<F>(closure: F)
 where
     F: Fn(i32) -> i32,
 {
     let result = closure(1);
-    println!("closure(1) => {}", result);
+    trace!("closure(1) => {}", result);
 }
 
 fn returns_closure() -> impl Fn(i32) -> i32 {
@@ -28,6 +30,9 @@ where
 }
 
 fn main() {
+    // Initialize simplelog logging
+    let _ = SimpleLogger::init(LevelFilter::Trace, Config::default());
+
     {
         let y = 2;
         receives_closure(|x| x + y);
@@ -55,15 +60,15 @@ fn main() {
         let concat = |s, t: &str| format!("{}{}", s, t);
         let closure = generic_curry(concat, "Hello, ");
         let result = closure("world!");
-        println!("{}", result);
+        trace!("{}", result);
     }
 
     // Tokio runtime
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     rt.enter(|| {
-        println!("in rt.enter()");
-        tokio::spawn(future::lazy(|_| println!("in tokio::spawn()")));
+        trace!("in rt.enter()");
+        tokio::spawn(future::lazy(|_| trace!("in tokio::spawn()")));
     });
-    rt.spawn(future::lazy(|_| println!("in rt.spawn()")));
-    rt.block_on(future::lazy(|_| println!("in rt.block_on()")));
+    rt.spawn(future::lazy(|_| trace!("in rt.spawn()")));
+    rt.block_on(future::lazy(|_| trace!("in rt.block_on()")));
 }
