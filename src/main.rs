@@ -36,21 +36,23 @@ fn main() {
     }
     {
         let closure = returns_closure();
-        println!("closure(1) => {}", closure(1));
-    }
-    {
-        let closure = returns_closure();
         receives_closure(closure);
     }
     {
         let add = |x, y| x + y;
         let closure = curry(add, 5);
-        println!("closure(1) => {}", closure(1));
+        receives_closure(closure);
     }
     {
         let two = 2;
         let add = |x, y| x + y + two;
         let closure = generic_curry(add, 4);
         receives_closure(closure);
+    }
+    {
+        let concat = |s, t: &str| format!("{}{}", s, t);
+        let closure = generic_curry(concat, "Hello, ");
+        let result = closure("world!");
+        println!("{}", result);
     }
 }
