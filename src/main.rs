@@ -1,6 +1,7 @@
 use futures::future;
 use log::trace;
 use simplelog::{Config, LevelFilter, SimpleLogger};
+use std::future::Future;
 
 fn receives_closure<F>(closure: F)
 where
@@ -27,6 +28,10 @@ where
     X: Copy,
 {
     move |y| f(x, y)
+}
+
+fn returns_future_i32() -> impl Future<Output = i32> {
+    future::ready(42)
 }
 
 fn main() {
@@ -73,6 +78,10 @@ fn main() {
     rt.block_on(future::lazy(|_| trace!("in rt.block_on()")));
     {
         let result = rt.block_on(future::ready("Hello from rt.block_on()"));
+        trace!("{}", result);
+    }
+    {
+        let result = rt.block_on(returns_future_i32());
         trace!("{}", result);
     }
 }
