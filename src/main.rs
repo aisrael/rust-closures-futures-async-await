@@ -6,6 +6,8 @@ use std::convert::Infallible;
 use std::error::Error;
 use std::future::Future;
 use std::pin::Pin;
+use std::time::Duration;
+use tokio::time::delay_for;
 
 fn receives_closure<F>(closure: F)
 where
@@ -50,6 +52,10 @@ fn returns_future_result() -> impl Future<Output = Result<i32, impl Error>> {
     future::ok::<_, Infallible>(42) // the _ is inferred from the parameter type
 }
 
+fn returns_delayed_future() -> impl Future<Output = i32> {
+    delay_for(Duration::from_millis(500)).then(|_| futures::future::ready(42))
+}
+
 fn returns_future_chain() -> impl Future<Output = ()> {
     future::lazy(|_| trace!("in returns_future_chain()"))
         .then(|_| {
@@ -64,6 +70,8 @@ fn returns_future_chain() -> impl Future<Output = ()> {
         .then(|_| returns_future_result())
         .map(|result| result.unwrap())
         .inspect(|result| trace!("returns_future_result().unwrap() -> {}", result))
+        .then(|_| returns_delayed_future())
+        .inspect(|result| trace!("returns_delayed_future() -> {}", result))
         .then(|_| future::ready(()))
 }
 
