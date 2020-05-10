@@ -6,15 +6,25 @@ where
     println!("closure(1) => {}", result);
 }
 
+fn returns_closure() -> impl Fn(i32) -> i32 {
+    |x| x + 4
+}
+
 fn main() {
     {
         let y = 2;
-        let add = |x| x + y;
-        receives_closure(add);
+        receives_closure(|x| x + y);
     }
     {
-        let y = 10;
-        let add = |x| x + y;
-        receives_closure(add);
+        let y = 3;
+        receives_closure(|x| x + y);
+    }
+    {
+        let closure = returns_closure();
+        println!("closure(1) => {}", closure(1));
+    }
+    {
+        let closure = returns_closure();
+        receives_closure(closure);
     }
 }
