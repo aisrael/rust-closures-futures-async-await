@@ -64,4 +64,5 @@ fn main() {
         println!("in rt.enter()");
         tokio::spawn(future::lazy(|_| println!("in tokio::spawn()")));
     });
+    rt.spawn(future::lazy(|_| println!("in rt.spawn()")));
 }
