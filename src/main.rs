@@ -1,6 +1,8 @@
 use futures::future;
 use log::trace;
 use simplelog::{Config, LevelFilter, SimpleLogger};
+use std::convert::Infallible;
+use std::error::Error;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -41,6 +43,10 @@ fn returns_dyn_future_i32() -> Pin<Box<dyn Future<Output = i32>>> {
     } else {
         Box::pin(future::lazy(|_| 1337))
     }
+}
+
+fn returns_future_result() -> impl Future<Output = Result<i32, impl Error>> {
+    future::ok::<_, Infallible>(42) // the _ is inferred from the parameter type
 }
 
 fn main() {
@@ -96,5 +102,9 @@ fn main() {
     {
         let result = rt.block_on(returns_dyn_future_i32());
         trace!("{}", result);
+    }
+    {
+        let result = rt.block_on(returns_future_result());
+        trace!("{}", result.unwrap());
     }
 }
