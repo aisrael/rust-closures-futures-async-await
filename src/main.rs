@@ -10,6 +10,13 @@ fn returns_closure() -> impl Fn(i32) -> i32 {
     |x| x + 4
 }
 
+fn curry<F>(f: F, x: i32) -> impl Fn(i32) -> i32
+where
+    F: Fn(i32, i32) -> i32,
+{
+    move |y| f(x, y)
+}
+
 fn main() {
     {
         let y = 2;
@@ -26,5 +33,10 @@ fn main() {
     {
         let closure = returns_closure();
         receives_closure(closure);
+    }
+    {
+        let add = |x, y| x + y;
+        let closure = curry(add, 5);
+        println!("closure(1) => {}", closure(1));
     }
 }
