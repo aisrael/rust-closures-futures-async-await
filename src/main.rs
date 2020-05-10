@@ -56,6 +56,14 @@ fn returns_delayed_future() -> impl Future<Output = i32> {
     delay_for(Duration::from_millis(500)).then(|_| futures::future::ready(42))
 }
 
+fn wait_a_sec<F, O>(f: F) -> impl Future<Output = O>
+where
+    F: Future<Output = O>,
+{
+    let delay = Duration::from_millis(1000);
+    delay_for(delay).then(|_| f)
+}
+
 fn returns_future_chain() -> impl Future<Output = ()> {
     future::lazy(|_| trace!("in returns_future_chain()"))
         .then(|_| {
@@ -72,6 +80,8 @@ fn returns_future_chain() -> impl Future<Output = ()> {
         .inspect(|result| trace!("returns_future_result().unwrap() -> {}", result))
         .then(|_| returns_delayed_future())
         .inspect(|result| trace!("returns_delayed_future() -> {}", result))
+        .then(|_| wait_a_sec(future::ready(42)))
+        .inspect(|result| trace!("wait_a_sec(future::ready(42)) -> {}", result))
         .then(|_| future::ready(()))
 }
 
