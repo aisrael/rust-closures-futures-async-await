@@ -1,3 +1,5 @@
+use futures::future;
+
 fn receives_closure<F>(closure: F)
 where
     F: Fn(i32) -> i32,
@@ -60,5 +62,6 @@ fn main() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     rt.enter(|| {
         println!("in rt.enter()");
+        tokio::spawn(future::lazy(|_| println!("in tokio::spawn()")));
     });
 }
