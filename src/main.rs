@@ -52,6 +52,10 @@ fn returns_future_result() -> impl Future<Output = Result<i32, impl Error>> {
     future::ok::<_, Infallible>(42) // the _ is inferred from the parameter type
 }
 
+fn returns_future_result_dyn_error() -> impl Future<Output = Result<i32, Box<dyn Error>>> {
+    future::ok(42)
+}
+
 fn returns_delayed_future() -> impl Future<Output = i32> {
     delay_for(Duration::from_millis(500)).then(|_| futures::future::ready(42))
 }
@@ -78,6 +82,9 @@ fn returns_future_chain() -> impl Future<Output = ()> {
         .then(|_| returns_future_result())
         .map(|result| result.unwrap())
         .inspect(|result| debug!("returns_future_result().unwrap() -> {}", result))
+        .then(|_| returns_future_result_dyn_error())
+        .map(|result| result.unwrap())
+        .inspect(|result| debug!("returns_future_result_dyn_error().unwrap() -> {}", result))
         .then(|_| returns_delayed_future())
         .inspect(|result| debug!("returns_delayed_future() -> {}", result))
         .then(|_| wait_a_sec(future::ready(42)))
@@ -86,10 +93,10 @@ fn returns_future_chain() -> impl Future<Output = ()> {
 }
 
 fn main() {
+    // Initialize simplelog logging
     let config = ConfigBuilder::new()
         .set_target_level(LevelFilter::Trace)
         .build();
-    // Initialize simplelog logging
     let _ = SimpleLogger::init(LevelFilter::Debug, config);
 
     {
@@ -136,15 +143,19 @@ fn main() {
     }
     {
         let result = rt.block_on(returns_impl_future_i32());
-        debug!("{}", result);
+        debug!("returns_impl_future_i32() -> {}", result);
     }
     {
         let result = rt.block_on(returns_dyn_future_i32());
-        debug!("{}", result);
+        debug!("returns_dyn_future_i32() -> {}", result);
     }
     {
         let result = rt.block_on(returns_future_result());
-        debug!("{}", result.unwrap());
+        debug!("returns_future_result() -> {}", result.unwrap());
+    }
+    {
+        let result = rt.block_on(returns_future_result_dyn_error());
+        debug!("returns_future_result_dyn_error() -> {}", result.unwrap());
     }
     rt.block_on(returns_future_chain());
 }
