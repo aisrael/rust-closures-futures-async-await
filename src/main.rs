@@ -95,6 +95,10 @@ fn returns_future_chain() -> impl Future<Output = ()> {
         })
 }
 
+async fn async_hello() {
+    debug!("Hello, asynchronously!");
+}
+
 fn main() {
     // Initialize simplelog logging
     let config = ConfigBuilder::new()
@@ -161,4 +165,6 @@ fn main() {
         debug!("returns_future_result_dyn_error() -> {}", result.unwrap());
     }
     rt.block_on(returns_future_chain());
+
+    rt.block_on(async_hello());
 }
