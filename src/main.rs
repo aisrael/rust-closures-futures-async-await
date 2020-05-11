@@ -1,7 +1,7 @@
 use futures::future;
 use futures::future::FutureExt;
-use log::trace;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use log::debug;
+use simplelog::{ConfigBuilder, LevelFilter, SimpleLogger};
 use std::convert::Infallible;
 use std::error::Error;
 use std::future::Future;
@@ -14,7 +14,7 @@ where
     F: Fn(i32) -> i32,
 {
     let result = closure(1);
-    trace!("closure(1) => {}", result);
+    debug!("closure(1) => {}", result);
 }
 
 fn returns_closure() -> impl Fn(i32) -> i32 {
@@ -65,29 +65,32 @@ where
 }
 
 fn returns_future_chain() -> impl Future<Output = ()> {
-    future::lazy(|_| trace!("in returns_future_chain()"))
+    future::lazy(|_| debug!("in returns_future_chain()"))
         .then(|_| {
-            trace!("in first then");
+            debug!("in first then");
             future::ready("Hello from rt.block_on()")
         })
-        .inspect(|result| trace!("future::ready() -> {}", result))
+        .inspect(|result| debug!("future::ready() -> {}", result))
         .then(|_| returns_impl_future_i32())
-        .inspect(|result| trace!("returns_impl_future_i32() -> {}", result))
+        .inspect(|result| debug!("returns_impl_future_i32() -> {}", result))
         .then(|_| returns_dyn_future_i32())
-        .inspect(|result| trace!("returns_dyn_future_i32() -> {}", result))
+        .inspect(|result| debug!("returns_dyn_future_i32() -> {}", result))
         .then(|_| returns_future_result())
         .map(|result| result.unwrap())
-        .inspect(|result| trace!("returns_future_result().unwrap() -> {}", result))
+        .inspect(|result| debug!("returns_future_result().unwrap() -> {}", result))
         .then(|_| returns_delayed_future())
-        .inspect(|result| trace!("returns_delayed_future() -> {}", result))
+        .inspect(|result| debug!("returns_delayed_future() -> {}", result))
         .then(|_| wait_a_sec(future::ready(42)))
-        .inspect(|result| trace!("wait_a_sec(future::ready(42)) -> {}", result))
+        .inspect(|result| debug!("wait_a_sec(future::ready(42)) -> {}", result))
         .then(|_| future::ready(()))
 }
 
 fn main() {
+    let config = ConfigBuilder::new()
+        .set_target_level(LevelFilter::Trace)
+        .build();
     // Initialize simplelog logging
-    let _ = SimpleLogger::init(LevelFilter::Trace, Config::default());
+    let _ = SimpleLogger::init(LevelFilter::Debug, config);
 
     {
         let y = 2;
@@ -116,32 +119,32 @@ fn main() {
         let concat = |s, t: &str| format!("{}{}", s, t);
         let closure = generic_curry(concat, "Hello, ");
         let result = closure("world!");
-        trace!("{}", result);
+        debug!("{}", result);
     }
 
     // Tokio runtime
     let mut rt = tokio::runtime::Runtime::new().unwrap();
     rt.enter(|| {
-        trace!("in rt.enter()");
-        tokio::spawn(future::lazy(|_| trace!("in tokio::spawn()")));
+        debug!("in rt.enter()");
+        tokio::spawn(future::lazy(|_| debug!("in tokio::spawn()")));
     });
-    rt.spawn(future::lazy(|_| trace!("in rt.spawn()")));
-    rt.block_on(future::lazy(|_| trace!("in rt.block_on()")));
+    rt.spawn(future::lazy(|_| debug!("in rt.spawn()")));
+    rt.block_on(future::lazy(|_| debug!("in rt.block_on()")));
     {
         let result = rt.block_on(future::ready("Hello from rt.block_on()"));
-        trace!("{}", result);
+        debug!("{}", result);
     }
     {
         let result = rt.block_on(returns_impl_future_i32());
-        trace!("{}", result);
+        debug!("{}", result);
     }
     {
         let result = rt.block_on(returns_dyn_future_i32());
-        trace!("{}", result);
+        debug!("{}", result);
     }
     {
         let result = rt.block_on(returns_future_result());
-        trace!("{}", result.unwrap());
+        debug!("{}", result.unwrap());
     }
     rt.block_on(returns_future_chain());
 }
