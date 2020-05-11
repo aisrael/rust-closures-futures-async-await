@@ -111,8 +111,13 @@ fn returns_async_block_i32() -> impl Future<Output = i32> {
     async { 42 }
 }
 
+fn fallible() -> Result<(), Box<dyn Error>> {
+    let _f = std::fs::File::open("foo.txt")?;
+    Ok(())
+}
+
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
     // Initialize simplelog logging
     let config = ConfigBuilder::new()
         .set_target_level(LevelFilter::Trace)
@@ -182,4 +187,7 @@ async fn main() {
     debug!("returns_future_i32 -> {}", r8);
     let r9 = returns_async_block_i32().await;
     debug!("returns_async_block_i32 -> {}", r9);
+
+    let _ = fallible()?;
+    Ok(())
 }
