@@ -155,36 +155,39 @@ fn main() {
         tokio::spawn(future::lazy(|_| debug!("in tokio::spawn()")));
     });
     rt.spawn(future::lazy(|_| debug!("in rt.spawn()")));
-    rt.block_on(future::lazy(|_| debug!("in rt.block_on()")));
-    let r0 = rt.block_on(future::ready("Hello from rt.block_on()"));
-    debug!("{}", r0);
-    let r1 = rt.block_on(returns_impl_future_i32());
-    debug!("returns_impl_future_i32() -> {}", r1);
-    let r2 = rt.block_on(returns_dyn_future_i32());
-    debug!("returns_dyn_future_i32() -> {}", r2);
-    let r3 = rt.block_on(returns_future_result());
-    debug!("returns_future_result() -> {}", r3.unwrap());
-    let r4 = rt.block_on(returns_future_result_dyn_error());
-    debug!("returns_future_result_dyn_error() -> {}", r4.unwrap());
-    rt.block_on(async_hello());
-    let async_block = async {
-        debug!("in async_block");
-    };
-    rt.block_on(async_block);
-    let x = 42;
-    let async_capture = async {
-        debug!("in async_capture, x => {}", x);
-    };
-    rt.block_on(async_capture);
-    let x = 42;
-    let async_capture = future::lazy(|_| {
-        debug!("in async_capture, x => {}", x);
+
+    rt.block_on(async {
+        debug!("in rt.block_on()");
+        let r0 = future::ready("Hello from rt.block_on()").await;
+        debug!("{}", r0);
+        let r1 = returns_impl_future_i32().await;
+        debug!("returns_impl_future_i32() -> {}", r1);
+        let r2 = returns_dyn_future_i32().await;
+        debug!("returns_dyn_future_i32() -> {}", r2);
+        let r3 = returns_future_result().await;
+        debug!("returns_future_result() -> {}", r3.unwrap());
+        let r4 = returns_future_result_dyn_error().await;
+        debug!("returns_future_result_dyn_error() -> {}", r4.unwrap());
+        let r5 = returns_delayed_future().await;
+        debug!("returns_delayed_future() -> {}", r5);
+        let r6 = wait_a_sec(future::ready(42)).await;
+        debug!("wait_a_sec(future::ready(42)) -> {}", r6);
+        returns_future_chain().await;
+        async_hello().await;
+        let async_block = async {
+            debug!("in async_block");
+        };
+        async_block.await;
+        let x = 42;
+        let async_capture = async {
+            debug!("in async_capture, x => {}", x);
+        };
+        async_capture.await;
+        let r7 = async_returns_i32().await;
+        debug!("async_returns_i32 -> {}", r7);
+        let r8 = returns_future_i32().await;
+        debug!("returns_future_i32 -> {}", r8);
+        let r9 = returns_async_block_i32().await;
+        debug!("returns_async_block_i32 -> {}", r9);
     });
-    rt.block_on(async_capture);
-    let r5 = rt.block_on(async_returns_i32());
-    debug!("async_returns_i32 -> {}", r5);
-    let r6 = rt.block_on(returns_future_i32());
-    debug!("returns_future_i32 -> {}", r6);
-    let r7 = rt.block_on(returns_async_block_i32());
-    debug!("returns_async_block_i32 -> {}", r7);
 }
