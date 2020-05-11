@@ -172,4 +172,12 @@ fn main() {
         debug!("in async_block");
     };
     rt.block_on(async_block);
+
+    {
+        let x = 42;
+        let async_capture = async {
+            debug!("in async_capture, x => {}", x);
+        };
+        rt.block_on(async_capture);
+    }
 }
