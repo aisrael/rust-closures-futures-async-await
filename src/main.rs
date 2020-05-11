@@ -167,4 +167,9 @@ fn main() {
     rt.block_on(returns_future_chain());
 
     rt.block_on(async_hello());
+
+    let async_block = async {
+        debug!("in async_block");
+    };
+    rt.block_on(async_block);
 }
