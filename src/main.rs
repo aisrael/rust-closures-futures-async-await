@@ -89,7 +89,10 @@ fn returns_future_chain() -> impl Future<Output = ()> {
         .inspect(|result| debug!("returns_delayed_future() -> {}", result))
         .then(|_| wait_a_sec(future::ready(42)))
         .inspect(|result| debug!("wait_a_sec(future::ready(42)) -> {}", result))
-        .then(|_| future::ready(()))
+        .then(|_| {
+            debug!("in last then");
+            future::ready(())
+        })
 }
 
 fn main() {
