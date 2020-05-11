@@ -111,7 +111,8 @@ fn returns_async_block_i32() -> impl Future<Output = i32> {
     async { 42 }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     // Initialize simplelog logging
     let config = ConfigBuilder::new()
         .set_target_level(LevelFilter::Trace)
@@ -148,46 +149,37 @@ fn main() {
         debug!("{}", result);
     }
 
-    // Tokio runtime
-    let mut rt = tokio::runtime::Runtime::new().unwrap();
-    rt.enter(|| {
-        debug!("in rt.enter()");
-        tokio::spawn(future::lazy(|_| debug!("in tokio::spawn()")));
-    });
-    rt.spawn(future::lazy(|_| debug!("in rt.spawn()")));
-
-    rt.block_on(async {
-        debug!("in rt.block_on()");
-        let r0 = future::ready("Hello from rt.block_on()").await;
-        debug!("{}", r0);
-        let r1 = returns_impl_future_i32().await;
-        debug!("returns_impl_future_i32() -> {}", r1);
-        let r2 = returns_dyn_future_i32().await;
-        debug!("returns_dyn_future_i32() -> {}", r2);
-        let r3 = returns_future_result().await;
-        debug!("returns_future_result() -> {}", r3.unwrap());
-        let r4 = returns_future_result_dyn_error().await;
-        debug!("returns_future_result_dyn_error() -> {}", r4.unwrap());
-        let r5 = returns_delayed_future().await;
-        debug!("returns_delayed_future() -> {}", r5);
-        let r6 = wait_a_sec(future::ready(42)).await;
-        debug!("wait_a_sec(future::ready(42)) -> {}", r6);
-        returns_future_chain().await;
-        async_hello().await;
-        let async_block = async {
-            debug!("in async_block");
-        };
-        async_block.await;
-        let x = 42;
-        let async_capture = async {
-            debug!("in async_capture, x => {}", x);
-        };
-        async_capture.await;
-        let r7 = async_returns_i32().await;
-        debug!("async_returns_i32 -> {}", r7);
-        let r8 = returns_future_i32().await;
-        debug!("returns_future_i32 -> {}", r8);
-        let r9 = returns_async_block_i32().await;
-        debug!("returns_async_block_i32 -> {}", r9);
-    });
+    tokio::spawn(future::lazy(|_| debug!("in tokio::spawn()")));
+    debug!("in rt.block_on()");
+    let r0 = future::ready("Hello from rt.block_on()").await;
+    debug!("{}", r0);
+    let r1 = returns_impl_future_i32().await;
+    debug!("returns_impl_future_i32() -> {}", r1);
+    let r2 = returns_dyn_future_i32().await;
+    debug!("returns_dyn_future_i32() -> {}", r2);
+    let r3 = returns_future_result().await;
+    debug!("returns_future_result() -> {}", r3.unwrap());
+    let r4 = returns_future_result_dyn_error().await;
+    debug!("returns_future_result_dyn_error() -> {}", r4.unwrap());
+    let r5 = returns_delayed_future().await;
+    debug!("returns_delayed_future() -> {}", r5);
+    let r6 = wait_a_sec(future::ready(42)).await;
+    debug!("wait_a_sec(future::ready(42)) -> {}", r6);
+    returns_future_chain().await;
+    async_hello().await;
+    let async_block = async {
+        debug!("in async_block");
+    };
+    async_block.await;
+    let x = 42;
+    let async_capture = async {
+        debug!("in async_capture, x => {}", x);
+    };
+    async_capture.await;
+    let r7 = async_returns_i32().await;
+    debug!("async_returns_i32 -> {}", r7);
+    let r8 = returns_future_i32().await;
+    debug!("returns_future_i32 -> {}", r8);
+    let r9 = returns_async_block_i32().await;
+    debug!("returns_async_block_i32 -> {}", r9);
 }
