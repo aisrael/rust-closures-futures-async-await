@@ -111,7 +111,7 @@ fn returns_async_block_i32() -> impl Future<Output = i32> {
     async { 42 }
 }
 
-fn fallible() -> Result<(), Box<dyn Error>> {
+async fn fallible() -> Result<(), Box<dyn Error>> {
     let _f = std::fs::File::open("foo.txt")?;
     Ok(())
 }
@@ -188,6 +188,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let r9 = returns_async_block_i32().await;
     debug!("returns_async_block_i32 -> {}", r9);
 
-    let _ = fallible()?;
+    let _ = fallible().await?;
     Ok(())
 }
