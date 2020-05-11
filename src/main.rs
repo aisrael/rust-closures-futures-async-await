@@ -99,6 +99,18 @@ async fn async_hello() {
     debug!("Hello, asynchronously!");
 }
 
+async fn async_returns_i32() -> i32 {
+    42
+}
+
+fn returns_future_i32() -> impl Future<Output = i32> {
+    future::ready(42)
+}
+
+fn returns_async_block_i32() -> impl Future<Output = i32> {
+    async { 42 }
+}
+
 fn main() {
     // Initialize simplelog logging
     let config = ConfigBuilder::new()
@@ -179,5 +191,24 @@ fn main() {
             debug!("in async_capture, x => {}", x);
         };
         rt.block_on(async_capture);
+    }
+    {
+        let x = 42;
+        let async_capture = future::lazy(|_| {
+            debug!("in async_capture, x => {}", x);
+        });
+        rt.block_on(async_capture);
+    }
+    {
+        let result = rt.block_on(async_returns_i32());
+        debug!("async_returns_i32 -> {}", result);
+    }
+    {
+        let result = rt.block_on(returns_future_i32());
+        debug!("returns_future_i32 -> {}", result);
+    }
+    {
+        let result = rt.block_on(returns_async_block_i32());
+        debug!("returns_async_block_i32 -> {}", result);
     }
 }
